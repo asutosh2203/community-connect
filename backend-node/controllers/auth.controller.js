@@ -1,4 +1,4 @@
-import { loginUser, registerUser } from "../services/auth.service.js";
+import { loginUser, registerUser, validateUserFromToken } from "../services/auth.service.js";
 import { Prisma } from "@prisma/client";
 import jwt from "jsonwebtoken";
 
@@ -69,9 +69,9 @@ export const login = async (req, res) => {
 
     // Set the Secure Cookie
     res.cookie("token", token, {
-      httpOnly: true, // Prevents JS from reading it (XSS protection)
-      secure: process.env.NODE_ENV === "production", // Only send over HTTPS in production
-      sameSite: "strict", // Helps prevent CSRF attacks
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
       maxAge: 24 * 60 * 60 * 1000, // 1 day (matches token)
     });
 
@@ -86,5 +86,32 @@ export const login = async (req, res) => {
     // Generic fallback error
     console.log("SERVER ERROR: ", error.message);
     return res.status(500).json({ error: "Something went wrong." });
+  }
+};
+
+// /api/auth/getme
+export const getMe = async (req, res) => {
+  try {
+    // 1. Get the token from the cookie
+    const token = req.cookies.token;
+
+    if (!token) {
+      console.log("NO TOKEN");
+      return res.status(401).json({ user: null, error: "Not authenticated" });
+    }
+    
+    // 2. Call the service to validate the token and get the user
+    const user = await validateUserFromToken(token);
+
+    if (!user) {
+      // Token was invalid or user not found
+      return res.status(401).json({ user: null, error: "Invalid token" });
+    }
+
+    // 3. Success! Return the user data.
+    return res.status(200).json({ user });
+  } catch (error) {
+    console.log("SERVER ERROR: ", error.message);
+    return res.status(500).json({ user: null, error: "Something went wrong." });
   }
 };
