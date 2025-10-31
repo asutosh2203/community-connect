@@ -1,0 +1,32 @@
+version: '3.8' # Specifies the version of the Docker Compose file syntax
+
+services:
+  # This is our database service, we'll call it 'db'
+  db:
+    # We use the 'postgis/postgis' image, which is Postgres + all the map features
+    image: postgis/postgis:16-3.4
+    
+    # Restarts the container automatically if it crashes or the PC reboots
+    restart: always 
+    
+    # These are the login details for your database
+    # --- IMPORTANT: Change 'your_password' to something secure ---
+    environment:
+      POSTGRES_USER: community_user
+      POSTGRES_PASSWORD: pgpn2203 
+      POSTGRES_DB: community_db
+      
+    # This maps the port on your local machine to the port inside the container
+    # Format is 'HOST_PORT:CONTAINER_PORT'
+    ports:
+      - '5433:5432'
+      
+    # This is the magic part. It saves your database data
+    # in a special 'volume' on your machine.
+    # So even if you stop/remove the container, your data is safe.
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+# This line tells Docker to officially create the 'postgres_data' volume
+volumes:
+  postgres_data:

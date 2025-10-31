@@ -1,0 +1,32 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// This generates the TypeScript client
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+// This points to your database
+datasource db {
+  provider   = "postgresql" // We are using PostgreSQL
+  url        = env("DATABASE_URL") // Loads the URL from your .env file
+  extensions = [postgis] // <-- This is the magic line for PostGIS!
+}
+
+// We'll define our User and Request models here
+model User {
+  id String @id @default(cuid())
+
+  phoneNumber String? @unique 
+
+  name String
+
+  role String @default("user")
+
+  createdAt DateTime @default(now())
+
+  email String @unique
+
+  passwordHash String
+}
