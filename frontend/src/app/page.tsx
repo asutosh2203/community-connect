@@ -1,4 +1,3 @@
-"use client";
 /**
  * Community Connect Landing Page
  */
@@ -40,9 +39,7 @@ export default function LandingPage() {
 
           <div className="container mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
             <h1 className="text-5xl font-extrabold tracking-tight text-gray-900 sm:text-6xl lg:text-7xl">
-              Get Local Help.
-              <br className="hidden sm:inline" />
-              Connect Your Neighbourhood.
+              Get Local Help. Connect Your Neighbourhood.
             </h1>
             <p className="mx-auto mt-6 max-w-3xl text-xl text-gray-600">
               From needing a hand moving furniture to finding a local tutor,

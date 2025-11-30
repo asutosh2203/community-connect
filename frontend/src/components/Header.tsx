@@ -1,30 +1,46 @@
 "use client";
 
-import {
-  ChevronRight,
-  HeartHandshakeIcon,
-  Loader2,
-  Menu,
-  User,
-} from "lucide-react";
+import { ChevronRight, Loader2, LogOut, Menu, User } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import Logo from "./Logo";
 import { useUser } from "@/context/UserContext";
 
-type Props = {};
+type Props = {
+  isOnDashboard?: boolean;
+};
 
-const Header = (props: Props) => {
+const Header = ({ isOnDashboard = false }: Props) => {
   const { user, isLoading } = useUser();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  //   useEffect(() => {}, [user, isLoading]);
+  useEffect(() => {
+    console.log("Loading State: ", isLoading);
+    console.log("User State: ", user);
+  }, [user, isLoading]);
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
+
+  const handleLogout = async () => {
+    try {
+      const res = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!res.ok) throw new Error("Logout failed");
+
+      // redirect to home
+      window.location.replace("/");
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
+  };
+
   return (
-    <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-sm shadow-sm">
+    <header className="sticky top-0 z-50 w-full bg-white backdrop-blur-sm shadow-sm text-black">
       {/* Overlay for mobile sidebar */}
       {isMobileMenuOpen && (
         <div
@@ -65,24 +81,44 @@ const Header = (props: Props) => {
           Features
         </Link>
 
-        {!user && (
-          <Link
-            href="/auth/login"
-            onClick={closeMobileMenu}
-            className="rounded-lg px-3 py-3 text-lg font-medium text-gray-700 hover:bg-gray-100 hover:text-indigo-600"
-          >
-            Log In
-          </Link>
+        {isLoading ? (
+          <Loader2 className="h-5 w-5 animate-spin" />
+        ) : !user ? (
+          <>
+            <Link
+              href="/auth/login"
+              className="rounded-lg px-4 py-2 text-indigo-600 font-semibold hover:bg-indigo-50 transition duration-200"
+            >
+              Log In
+            </Link>
+            <Link
+              href="/auth/register"
+              className="flex items-center space-x-1 rounded-lg bg-indigo-600 px-4 py-2 text-white font-semibold shadow-md transition duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            >
+              <span>Get Started</span>
+              <ChevronRight className="w-5 h-5" />
+            </Link>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center justify-between text-indigo-600 px-2">
+              <div className="flex items-center gap-2">
+                <User color="#4f39f6" />
+                <span className="font-bold">{user.name.split(" ")[0]}</span>
+              </div>
+              <LogOut className="cursor-pointer" onClick={handleLogout} />
+            </div>
+            {!isOnDashboard && (
+              <Link
+                href="/dashboard"
+                className="flex items-center space-x-1 rounded-lg bg-indigo-600 px-4 py-2 text-white font-semibold shadow-md transition duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              >
+                <span>My Dashboard</span>
+                <ChevronRight className="w-5 h-5" />
+              </Link>
+            )}
+          </>
         )}
-
-        <Link
-          href="/auth/register"
-          onClick={closeMobileMenu}
-          className="flex items-center justify-center space-x-1 rounded-lg bg-indigo-600 px-4 py-3 text-lg text-white font-semibold shadow-md transition duration-200 hover:bg-indigo-700"
-        >
-          <span>Get Started</span>
-          <ChevronRight className="w-5 h-5" />
-        </Link>
       </div>
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link
@@ -100,13 +136,13 @@ const Header = (props: Props) => {
         {/* Desktop Navigation */}
         <nav className="hidden items-center space-x-4 md:flex">
           <Link
-            href="#how-it-works"
+            href="/#how-it-works"
             className="rounded-lg px-3 py-2 text-gray-600 hover:bg-gray-100 hover:text-indigo-600 transition duration-150 font-medium"
           >
             How it works
           </Link>
           <Link
-            href="#features"
+            href="/#features"
             className="rounded-lg px-3 py-2 text-gray-600 hover:bg-gray-100 hover:text-indigo-600 transition duration-150 font-medium"
           >
             Features
@@ -134,14 +170,25 @@ const Header = (props: Props) => {
             </>
           ) : (
             <>
-              <User />
-              <Link
-                href="/dashboard"
-                className="flex items-center space-x-1 rounded-lg bg-indigo-600 px-4 py-2 text-white font-semibold shadow-md transition duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              <div
+                className="flex items-center gap-8
+               text-indigo-600 px-2"
               >
-                <span>My Dashboard</span>
-                <ChevronRight className="w-5 h-5" />
-              </Link>
+                <div className="flex items-center gap-2">
+                  <User color="#4f39f6" />
+                  <span className="font-bold">{user.name.split(" ")[0]}</span>
+                </div>
+                <LogOut className="cursor-pointer" onClick={handleLogout} />
+              </div>
+              {!isOnDashboard && (
+                <Link
+                  href="/dashboard"
+                  className="flex items-center space-x-1 rounded-lg bg-indigo-600 px-4 py-2 text-white font-semibold shadow-md transition duration-200 hover:bg-indigo-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                >
+                  <span>My Dashboard</span>
+                  <ChevronRight className="w-5 h-5" />
+                </Link>
+              )}
             </>
           )}
         </nav>

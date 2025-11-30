@@ -3,7 +3,7 @@
 
 // This generates the TypeScript client
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]
 }
 
@@ -14,11 +14,36 @@ datasource db {
   extensions = [postgis] // <-- This is the magic line for PostGIS!
 }
 
-// We'll define our User and Request models here
+// --- ENUMS ---
+
+// To track if a user is ASKING for help or OFFERING help
+enum RequestType {
+  REQUEST
+  OFFER
+}
+
+// To track the job's lifecycle
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  COMPLETED
+  CANCELLED
+}
+
+// A list of categories for filtering
+enum Category {
+  LABOUR
+  TUTORING
+  TOOLS
+  RIDE
+  OTHER
+}
+
+// --- MODELS ---
 model User {
   id String @id @default(cuid())
 
-  phoneNumber String? @unique 
+  phoneNumber String? @unique
 
   name String
 
@@ -29,4 +54,34 @@ model User {
   email String @unique
 
   passwordHash String
+
+  requestsPosted   Request[] @relation("PostedBy")
+  requestsAccepted Request[] @relation("FulfilledBy")
+}
+
+model Request {
+  id          String  @id @default(cuid()) // Using CUID for better performance
+  title       String
+  description String?
+
+  type     RequestType // "REQUEST" or "OFFER"
+  status   RequestStatus @default(PENDING)
+  category Category      @default(OTHER)
+
+  // --- The PostGIS Location ---
+  // We have to use Unsupported() for raw Geometry types
+  location Unsupported("geometry(Point, 4326)")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // --- Relation 1: The Author ---
+  // The user who posted this request
+  author   User   @relation("PostedBy", fields: [authorId], references: [id])
+  authorId String
+
+  // --- Relation 2: The Provider ---
+  // The user who accepted this request (optional)
+  provider   User?   @relation("FulfilledBy", fields: [providerId], references: [id])
+  providerId String?
 }

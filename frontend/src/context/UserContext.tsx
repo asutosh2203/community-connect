@@ -20,6 +20,7 @@ interface User {
 interface UserContextType {
   user: User | null;
   isLoading: boolean;
+  refreshUser: () => Promise<void>;
 }
 
 // Create the context
@@ -30,33 +31,34 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true); // Start loading by default
 
+  const fetchUser = async () => {
+    try {
+      const response = await fetch("/api/auth/getme", {
+        credentials: "include", // <-- CRITICAL: This sends the cookie
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setUser(data.user); // Set the user in state
+      } else {
+        setUser(null); // No user is logged in
+      }
+    } catch (error) {
+      console.error("Failed to fetch user", error);
+      setUser(null); // Error, so no user
+    } finally {
+      setIsLoading(false); // We're done loading, one way or another
+    }
+  };
+
   useEffect(() => {
     // This effect runs once when the app loads
-    const fetchUser = async () => {
-      try {
-        const response = await fetch("/api/auth/getme", {
-          credentials: "include", // <-- CRITICAL: This sends the cookie
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setUser(data.user); // Set the user in state
-        } else {
-          setUser(null); // No user is logged in
-        }
-      } catch (error) {
-        console.error("Failed to fetch user", error);
-        setUser(null); // Error, so no user
-      } finally {
-        setIsLoading(false); // We're done loading, one way or another
-      }
-    };
 
     fetchUser();
   }, []); // The empty array [] means this runs ONCE on mount
 
   return (
-    <UserContext.Provider value={{ user, isLoading }}>
+    <UserContext.Provider value={{ user, isLoading, refreshUser: fetchUser }}>
       {children}
     </UserContext.Provider>
   );

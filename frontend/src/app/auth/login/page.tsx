@@ -6,8 +6,10 @@ import { useRouter } from "next/navigation"; // Import useRouter for redirects
 import { Mail, Lock, HeartHandshake, Loader2, AlertCircle } from "lucide-react";
 import MessageBox from "@/components/MessageBox";
 import Header from "@/components/Header";
+import { useUser } from "@/context/UserContext";
 
 export default function LoginPage() {
+  const { refreshUser } = useUser();
   // Form state
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -48,6 +50,7 @@ export default function LoginPage() {
         });
         // On successful login, the httpOnly cookie is set by the backend.
         // We just need to redirect the user to the protected dashboard.
+        refreshUser();
         setTimeout(() => {
           router.push("/dashboard"); // Redirect to the dashboard
         }, 1000); // Wait 1 second to show the success message
@@ -165,7 +168,9 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex w-full justify-center rounded-lg bg-indigo-600 py-2 px-4 text-sm font-semibold text-white shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  className={`flex w-full justify-center rounded-lg bg-indigo-600 py-2 px-4 text-sm font-semibold text-white shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                    !loading && "cursor-pointer"
+                  }`}
                 >
                   {loading ? (
                     <Loader2 className="h-5 w-5 animate-spin" />

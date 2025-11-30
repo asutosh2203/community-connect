@@ -1,4 +1,8 @@
-import { loginUser, registerUser, validateUserFromToken } from "../services/auth.service.js";
+import {
+  loginUser,
+  registerUser,
+  validateUserFromToken,
+} from "../services/auth.service.js";
 import { Prisma } from "@prisma/client";
 import jwt from "jsonwebtoken";
 
@@ -73,6 +77,7 @@ export const login = async (req, res) => {
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
       maxAge: 24 * 60 * 60 * 1000, // 1 day (matches token)
+      path: "/",
     });
 
     // Send the user data back to the frontend
@@ -89,6 +94,23 @@ export const login = async (req, res) => {
   }
 };
 
+export const logout = async (req, res) => {
+  try {
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      path: "/", // must match
+    });
+    return res
+      .status(200)
+      .json({ success: true, message: "User logged out successfully!" });
+  } catch (error) {
+    console.log("SERVER ERROR: ", error.message);
+    return res.status(500).json({ error: "Something went wrong." });
+  }
+};
+
 // /api/auth/getme
 export const getMe = async (req, res) => {
   try {
@@ -99,7 +121,7 @@ export const getMe = async (req, res) => {
       console.log("NO TOKEN");
       return res.status(401).json({ user: null, error: "Not authenticated" });
     }
-    
+
     // 2. Call the service to validate the token and get the user
     const user = await validateUserFromToken(token);
 
